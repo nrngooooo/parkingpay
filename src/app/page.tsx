@@ -1,9 +1,10 @@
-import { Box, Typography } from "@mui/material";
+import CarSearch from "@/container/carSearch";
+import { Box } from "@mui/material";
 
 export default function Home() {
   return (
     <Box>
-      <Typography>jhnjhuhnuj</Typography>
+      <CarSearch />
     </Box>
   );
 }
