@@ -5,11 +5,7 @@ import React from "react";
 const CarDetailPage = () => {
   return (
     <Box>
-      <CarDetails
-        params={{
-          carNumber: "",
-        }}
-      />
+      <CarDetails />
     </Box>
   );
 };

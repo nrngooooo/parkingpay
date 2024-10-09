@@ -1,27 +1,21 @@
+// useFormHook.ts
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm, UseFormReturn } from "react-hook-form";
 import * as yup from "yup";
 
-interface ICarSearch {
-  carNumber: string;
-}
-
-// Yup validation schema
-const carSearchSchema = yup.object().shape({
+// Define the validation schema
+const schema = yup.object({
   carNumber: yup
     .string()
-    .required("Car number is required")
-    .matches(/^[А-Я0-9]+$/, "Invalid car number format"),
+    .length(4, "Авто машины дугаар 4 оронтой байх ёстой") // Ensure car number is 4 digits
+    // .required("Авто машины дугаар оруулна уу"),
 });
 
-// Custom hook for form handling
-const useFormHook = (): UseFormReturn<ICarSearch> => {
-  const form = useForm<ICarSearch>({
-    resolver: yupResolver(carSearchSchema),
-    mode: "onSubmit",
+const useFormHook = () => {
+  // Initialize useForm with the yup resolver
+  return useForm({
+    resolver: yupResolver(schema), // Integrate the schema
   });
-
-  return { ...form };
 };
 
 export default useFormHook;
