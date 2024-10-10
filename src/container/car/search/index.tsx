@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Box, Button, TextField, Typography, Grid } from "@mui/material";
 import { Clear, Check } from "@mui/icons-material";
-import useFormHook from "./useFormHook"; // Import your custom hook
+import useFormHook from "./useFormHook";
 
-const mockCarData = ["1234", "5678", "VALIDNUM"]; // Simulated car numbers for testing
+const mockCarData = ["1234", "5678"];
 
 const CarSearch: React.FC = () => {
   const {
@@ -13,7 +13,7 @@ const CarSearch: React.FC = () => {
     formState: { errors },
     setError,
     clearErrors,
-  } = useFormHook(); // Use the custom hook
+  } = useFormHook();
   const [carNumbers, setCarNumbers] = useState(["", "", "", ""]);
   const router = useRouter();
 
@@ -23,7 +23,7 @@ const CarSearch: React.FC = () => {
       const firstEmptyIndex = nextNumbers.findIndex((n) => n === "");
       if (firstEmptyIndex !== -1) {
         nextNumbers[firstEmptyIndex] = num;
-        clearErrors("carNumber"); // Clear errors when typing
+        clearErrors("carNumber");
       }
       return nextNumbers;
     });
@@ -48,17 +48,21 @@ const CarSearch: React.FC = () => {
 
   const onSubmit = () => {
     const fullCarNumber = carNumbers.join("");
-    console.log("Searching for car number:", fullCarNumber);
 
-    // Check if the car number exists in the mock data
-    if (mockCarData.includes(fullCarNumber)) {
-      // Navigate to the car detail page if the number is valid
-      router.push(`/car/detail/${fullCarNumber}`);
-    } else {
-      // Set an error if the car number is not found
+    if (fullCarNumber.length < 4) {
       setError("carNumber", {
         type: "manual",
-        message: "Авто машины дугаар олдсонгүй", // Error message when not found
+        message: "Авто машины дугаар дутуу байна",
+      });
+      return;
+    }
+
+    if (mockCarData.includes(fullCarNumber)) {
+      router.push(`/car/detail/${fullCarNumber}`);
+    } else {
+      setError("carNumber", {
+        type: "manual",
+        message: "Авто машины дугаар олдсонгүй",
       });
     }
   };
@@ -66,7 +70,7 @@ const CarSearch: React.FC = () => {
   return (
     <Box
       component="form"
-      onSubmit={handleSubmit(onSubmit)} // Proper form submission
+      onSubmit={handleSubmit(onSubmit)} 
       sx={{
         display: "flex",
         flexDirection: "column",

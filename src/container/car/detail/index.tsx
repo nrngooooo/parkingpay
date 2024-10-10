@@ -5,20 +5,18 @@ import Image from "next/image";
 import React from "react";
 
 const CarDetail: React.FC = () => {
-  const router = useRouter(); // Correctly declare router using const
-  const { carnumber } = useParams(); // Fetch dynamic route parameter
+  const router = useRouter();
+  const { carnumber } = useParams();
 
-  // Mock data (this could come from a server or API in a real-world scenario)
   const carInfo = {
     date: "2024-09-17 20:06:39",
-    timeSpent: "Оцаг 25мин",
+    timeSpent: "0цаг 35мин",
     amountDue: 500,
     discount: 0,
     totalAmount: 500,
   };
 
   const handleProceedToPayment = () => {
-    // Navigate to the payment page
     router.push(`/car/payment/${carnumber}`);
   };
 
@@ -26,27 +24,29 @@ const CarDetail: React.FC = () => {
     <Box
       sx={{
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
         backgroundColor: "#f4f4f4",
       }}
     >
+      {/* Card Section */}
       <Card sx={{ width: 400, textAlign: "center" }}>
-        {/* Display the image */}
-        <Box sx={{ position: "relative", width: "100%", height: 200 }}>
+        <Box sx={{ position: "relative" }}>
           <Image
-            src="/car-parking.jpg" // Replace with the correct image path
+            src="/images/carimgxmple.jpg"
             alt="Parking"
-            layout="fill"
             objectFit="cover"
+            width={500}
+            height={200}
           />
         </Box>
 
         {/* Ticket Information */}
         <CardContent>
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            {carnumber}
+            {carnumber}УНБ
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {carInfo.date}
@@ -79,6 +79,7 @@ const CarDetail: React.FC = () => {
               display: "flex",
               justifyContent: "space-between",
               marginBottom: 2,
+              color: "green",
             }}
           >
             <Typography>Хөнгөлөлт</Typography>
@@ -96,32 +97,36 @@ const CarDetail: React.FC = () => {
             <Typography>Төлөх Дүн</Typography>
             <Typography>{carInfo.totalAmount}₮</Typography>
           </Box>
-
-          {/* Action Buttons */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: 3,
-            }}
-          >
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => router.push("/")}
-            >
-              БУЦАХ
-            </Button>
-            <Button
-              variant="contained"
-              color="warning"
-              onClick={handleProceedToPayment}
-            >
-              ҮРГЭЛЖЛҮҮЛЭХ
-            </Button>
-          </Box>
         </CardContent>
       </Card>
+
+      {/* Buttons Section: Positioned Outside the Card, Below It */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: 3,
+          width: "400px",
+          gap: 2,
+        }}
+      >
+        <Button
+          variant="contained"
+          color="error"
+          fullWidth
+          onClick={() => router.push("/")}
+        >
+          БУЦАХ
+        </Button>
+        <Button
+          variant="contained"
+          color="warning"
+          fullWidth
+          onClick={handleProceedToPayment}
+        >
+          ҮРГЭЛЖЛҮҮЛЭХ
+        </Button>
+      </Box>
     </Box>
   );
 };
