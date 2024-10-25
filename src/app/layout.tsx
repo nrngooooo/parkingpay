@@ -1,4 +1,4 @@
-import Header from "@/components/header";
+import MainLayout from "@/layouts/MainLayout";
 import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Parking payment app",
@@ -10,11 +10,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const Layout = MainLayout;
   return (
     <html lang="en">
-      <body>
-        <Header />
-        {children}
+      <body style={{ margin: 0, padding: 0 }}>
+        <Layout>{children}</Layout>
       </body>
     </html>
   );
