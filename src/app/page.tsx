@@ -1,9 +1,9 @@
-import CarSearch from "@/container/car/search";
+import VehicleCapture from "@/container/car/entrycar";
 
 export default function Home() {
   return (
     <main>
-      <CarSearch />
+      <VehicleCapture />
     </main>
   );
 }

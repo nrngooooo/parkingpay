@@ -46,9 +46,14 @@ const CarDetail: React.FC = () => {
         {/* Ticket Information */}
         <CardContent>
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            {carnumber}УНБ
+            {carnumber}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+            }}
+          >
             {carInfo.date}
           </Typography>
 
@@ -99,7 +104,6 @@ const CarDetail: React.FC = () => {
           </Box>
         </CardContent>
       </Card>
-
       {/* Buttons Section: Positioned Outside the Card, Below It */}
       <Box
         sx={{
@@ -114,7 +118,7 @@ const CarDetail: React.FC = () => {
           variant="contained"
           color="error"
           fullWidth
-          onClick={() => router.push("/")}
+          onClick={() => router.back()}
         >
           БУЦАХ
         </Button>
