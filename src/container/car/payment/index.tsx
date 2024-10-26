@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, useParams } from "next/navigation";
 import { Button, Box, Card, CardContent, Typography } from "@mui/material";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import React, { useEffect, useState } from "react";
 import AccessTimeIcon from '@mui/icons-material/AccessTime'; 
 

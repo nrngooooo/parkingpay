@@ -1,7 +1,7 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Card, CardContent, Typography, Box } from "@mui/material";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import React from "react";
 
 const CarDetail: React.FC = () => {
