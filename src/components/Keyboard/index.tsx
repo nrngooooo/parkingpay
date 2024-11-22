@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Grid, Box } from "@mui/material";
-import { Clear } from "@mui/icons-material";
+import { ArrowBack } from "@mui/icons-material";
 
 interface KeyboardProps {
   onLetterPress: (letter: string) => void;
@@ -58,7 +58,7 @@ const Keyboard: React.FC<KeyboardProps> = ({ onLetterPress, onBackspace }) => {
               ":hover": { bgcolor: "#cc0000" },
             }}
           >
-            <Clear />
+            <ArrowBack />
           </Button>
         </Grid>
       </Grid>

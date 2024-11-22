@@ -1,7 +1,7 @@
 // Keypad.tsx
 import React from "react";
 import { Button, Grid } from "@mui/material";
-import { Clear } from "@mui/icons-material";
+import { ArrowBack } from "@mui/icons-material";
 
 interface KeypadProps {
   onKeyPress: (num: string) => void;
@@ -34,7 +34,7 @@ const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace }) => {
           onClick={onBackspace}
           sx={{ width: "100%", bgcolor: "red", color: "#fff" }} // Button color for Backspace
         >
-          <Clear />
+          <ArrowBack />
         </Button>
       </Grid>
       <Grid item xs={4}>
