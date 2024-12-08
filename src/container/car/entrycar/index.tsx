@@ -1,6 +1,20 @@
 "use client";
 import React, { useRef, useState } from "react";
-import Tesseract from "tesseract.js"; // Import Tesseract.js for OCR
+import { useMutation } from "@apollo/client";
+import gql from "graphql-tag";
+
+const VEHICLE_ENTRY_MUTATION = gql`
+  mutation VehicleEntry($photo: String!) {
+    vehicleEntry(photo: $photo) {
+      car {
+        carPlate
+      }
+      parkingSession {
+        entryTime
+      }
+    }
+  }
+`;
 
 const VehicleCapture: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -8,28 +22,29 @@ const VehicleCapture: React.FC = () => {
   const [registrationNumber, setRegistrationNumber] = useState<string>("");
   const [captureTime, setCaptureTime] = useState<string>("");
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [vehicleEntry] = useMutation(VEHICLE_ENTRY_MUTATION);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string); // Set the image URL to display
-        const currentTime = new Date().toLocaleString();
-        setCaptureTime(currentTime); // Set the capture time
+      reader.onloadend = async () => {
+        setImageUrl(reader.result as string);
 
-        Tesseract.recognize(reader.result as string, "mon", {
-          logger: (info) => console.log(info), // Log the progress of the OCR process
-        })
-          .then(({ data: { text } }) => {
-            // Set the extracted text as the registration number
-            const extractedNumber = text.trim();
-            setRegistrationNumber(extractedNumber);
-          })
-          .catch((err) => {
-            console.error("OCR error:", err); // Handle any errors during OCR
+        try {
+          const { data } = await vehicleEntry({
+            variables: {
+              photo: reader.result, // Pass the base64-encoded image
+            },
           });
+
+          setRegistrationNumber(data.vehicleEntry.car.carPlate);
+          setCaptureTime(new Date(data.vehicleEntry.parkingSession.entryTime).toLocaleString());
+        } catch (err) {
+          console.error("Error during mutation:", err);
+        }
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      reader.readAsDataURL(file); // Read file as base64
     }
   };
 
@@ -38,9 +53,9 @@ const VehicleCapture: React.FC = () => {
       <h1>Тээврийн хэрэгслийн зураг оруулах</h1>
       <input
         type="file"
-        accept="image/*" // Accept image files only
+        accept="image/*"
         ref={fileInputRef}
-        onChange={handleFileChange} // Handle file selection
+        onChange={handleFileChange}
         style={{ marginBottom: "20px" }}
       />
       {imageUrl && (
