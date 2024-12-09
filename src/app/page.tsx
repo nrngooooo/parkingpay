@@ -1,9 +1,9 @@
-import VehicleCapture from "@/container/car/entrycar";
+import EntryCar from "@/container/car/entrycar";
 
 export default function Home() {
   return (
     <main>
-      <VehicleCapture />
+      <EntryCar />
     </main>
   );
 }
