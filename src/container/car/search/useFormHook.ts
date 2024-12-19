@@ -6,9 +6,10 @@ import * as yup from "yup";
 // Define the validation schema
 const schema = yup.object({
   carNumber: yup
-    .string()
+    .array()
+    .of(yup.string().length(1, "Each digit must be 1 character").required("Each field is required"))
     .length(4, "Авто машины дугаар 4 оронтой байх ёстой") // Ensure car number is 4 digits
-    // .required("Авто машины дугаар оруулна уу"),
+    .required("Авто машины дугаар оруулна уу"),
 });
 
 const useFormHook = () => {

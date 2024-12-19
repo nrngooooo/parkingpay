@@ -15,15 +15,19 @@ const Keyboard: React.FC<KeyboardProps> = ({ onLetterPress, onBackspace }) => {
   ];
 
   return (
-    <Box sx={{ bgcolor: "#444", padding: 1, borderRadius: "8px" }}>
+    (<Box sx={{ bgcolor: "#444", padding: 1, borderRadius: "8px" }}>
       {keyRows.map((row, rowIndex) => (
         <Grid
           key={rowIndex}
           container
           spacing={1}
-          justifyContent="center"
-          sx={{ mb: rowIndex < keyRows.length - 1 ? 1 : 0 }}
-        >
+          sx={[{
+            justifyContent: "center"
+          }, rowIndex < keyRows.length - 1 ? {
+            mb: 1
+          } : {
+            mb: 0
+          }]}>
           {row.map((letter) => (
             <Grid item key={letter} xs="auto">
               <Button
@@ -45,7 +49,9 @@ const Keyboard: React.FC<KeyboardProps> = ({ onLetterPress, onBackspace }) => {
           ))}
         </Grid>
       ))}
-      <Grid container spacing={1} justifyContent="center">
+      <Grid container spacing={1} sx={{
+        justifyContent: "center"
+      }}>
         <Grid item>
           <Button
             variant="contained"
@@ -62,7 +68,7 @@ const Keyboard: React.FC<KeyboardProps> = ({ onLetterPress, onBackspace }) => {
           </Button>
         </Grid>
       </Grid>
-    </Box>
+    </Box>)
   );
 };
 
