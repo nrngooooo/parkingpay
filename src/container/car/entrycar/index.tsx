@@ -3,7 +3,7 @@ import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 
 const CREATE_ENTRY_CAR = gql`
-  mutation CreateEntryCar($input: CreateEntryCarInput!) {
+  mutation CreateEntryCarMutation($input: CreateEntryCarInput!) {
     createEntryCar(input: $input) {
       car {
         carPlate
@@ -18,15 +18,16 @@ const CREATE_ENTRY_CAR = gql`
 `;
 
 export default function EntryCar() {
-  const [carPlate, setCarPlate] = useState("");
-  const [image, setImage] = useState<File | null>(null);
+  const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [createEntryCar, { data, loading, error }] =
-    useMutation(CREATE_ENTRY_CAR);
+  const [result, setResult] = useState<any>(null);
+
+  const [createEntryCar] = useMutation(CREATE_ENTRY_CAR);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setImage(file || null);
+    setEntryPhoto(file || null);
   };
 
   const convertToBase64 = (file: File): Promise<string> => {
@@ -35,7 +36,7 @@ export default function EntryCar() {
       reader.readAsDataURL(file);
       reader.onload = () => {
         if (reader.result) {
-          resolve((reader.result as string).split(",")[1]); // Ensure `result` is treated as a string
+          resolve((reader.result as string).split(",")[1]);
         } else {
           reject(new Error("File reading failed"));
         }
@@ -44,42 +45,83 @@ export default function EntryCar() {
     });
   };
 
+  const extractCarPlateFromImage = async (file: File): Promise<string> => {
+    const ocrUrl = "https://ocr-extract-text.p.rapidapi.com/ocr";
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      console.log("Sending OCR request to:", ocrUrl);
+      const response = await fetch(ocrUrl, {
+        method: "POST",
+        headers: {
+          "x-rapidapi-key":
+            "b7236ac650msh72870dd3628314bp1a470bjsn0e0f0874ec9d",
+          "x-rapidapi-host": "ocr-extract-text.p.rapidapi.com",
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`OCR API response: ${response.status} ${errorText}`);
+        throw new Error(
+          `OCR API returned status ${response.status}: ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("OCR API response data:", data);
+
+      const plateNumber = data.text.match(/\d+/g)?.join("").slice(0, 4);
+      return plateNumber || "";
+    } catch (error) {
+      console.error("Error in OCR API:", error);
+      throw new Error("Failed to extract car plate from the image.");
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!carPlate || !image) {
-      setErrorMessage("Car plate and image are required.");
+    if (!entryPhoto) {
+      setErrorMessage("An entry photo is required.");
       return;
     }
 
+    setLoading(true);
+    setErrorMessage("");
+
     try {
-      const base64Image = await convertToBase64(image);
-      await createEntryCar({
+      const detectedPlate = await extractCarPlateFromImage(entryPhoto);
+      if (!detectedPlate) {
+        throw new Error("Failed to extract car plate from the image.");
+      }
+
+      const base64Image = await convertToBase64(entryPhoto);
+
+      const response = await createEntryCar({
         variables: {
           input: {
-            carPlate,
-            image: base64Image,
+            carPlate: detectedPlate,
+            entryPhoto: base64Image,
           },
         },
       });
-      setErrorMessage("");
+
+      setResult(response.data);
       alert("Entry successfully recorded.");
-    } catch (err) {
-      console.error("GraphQL mutation error:", err); // Log error details here
-      setErrorMessage("Failed to create entry. Please try again.");
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(
+        err.message || "Failed to create entry. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
       <h1>Car Entry</h1>
-      <div style={{ marginBottom: "10px" }}>
-        <label>Car Plate: </label>
-        <input
-          type="text"
-          value={carPlate}
-          onChange={(e) => setCarPlate(e.target.value)}
-          placeholder="Enter car plate (e.g., 1234ABC)"
-        />
-      </div>
       <div style={{ marginBottom: "10px" }}>
         <label>Upload Entry Photo: </label>
         <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -88,12 +130,11 @@ export default function EntryCar() {
         {loading ? "Processing..." : "Submit"}
       </button>
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-      {error && <p style={{ color: "red" }}>{error.message}</p>}
-      {data && (
+      {result && (
         <div style={{ marginTop: "20px" }}>
           <h3>Car Entry Recorded:</h3>
-          <p>Car Plate: {data.createEntryCar.car.carPlate}</p>
-          <p>Entry Time: {data.createEntryCar.parkingSession.entryTime}</p>
+          <p>Car Plate: {result.createEntryCar.car.carPlate}</p>
+          <p>Entry Time: {result.createEntryCar.parkingSession.entryTime}</p>
         </div>
       )}
     </div>

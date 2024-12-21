@@ -6,15 +6,19 @@ import {
 } from "@apollo/client";
 import crossFetch from "cross-fetch";
 
+const csrfToken =
+  typeof window !== "undefined"
+    ? document.cookie.match(/csrftoken=([\w-]+)/)?.[1]
+    : null;
+
 const client = new ApolloClient({
   cache: new InMemoryCache(),
   link: new HttpLink({
     uri: process.env.NEXT_PUBLIC_BACK_END_URL + "graphql/",
     fetch: crossFetch,
-    fetchOptions: { method: "GET" },
-    // credentials: "include",
     headers: {
-      "Content-Type": "application/graphql",
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken || "",
     },
   }),
 });
