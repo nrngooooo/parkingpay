@@ -1,6 +1,14 @@
 "use client";
 import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 
 const CREATE_ENTRY_CAR = gql`
   mutation CreateEntryCarMutation($input: CreateEntryCarInput!) {
@@ -51,7 +59,6 @@ export default function EntryCar() {
     formData.append("image", file);
 
     try {
-      console.log("Sending OCR request to:", ocrUrl);
       const response = await fetch(ocrUrl, {
         method: "POST",
         headers: {
@@ -64,19 +71,13 @@ export default function EntryCar() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`OCR API response: ${response.status} ${errorText}`);
-        throw new Error(
-          `OCR API returned status ${response.status}: ${errorText}`
-        );
+        throw new Error(`OCR API returned status ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("OCR API response data:", data);
-
       const plateNumber = data.text.match(/\d+/g)?.join("").slice(0, 4);
       return plateNumber || "";
     } catch (error) {
-      console.error("Error in OCR API:", error);
       throw new Error("Failed to extract car plate from the image.");
     }
   };
@@ -108,35 +109,51 @@ export default function EntryCar() {
       });
 
       setResult(response.data);
-      alert("Entry successfully recorded.");
     } catch (err: any) {
-      console.error(err);
-      setErrorMessage(
-        err.message || "Failed to create entry. Please try again."
-      );
+      setErrorMessage(err.message || "Failed to create entry. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
-      <h1>Car Entry</h1>
-      <div style={{ marginBottom: "10px" }}>
-        <label>Upload Entry Photo: </label>
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-      </div>
-      <button onClick={handleSubmit} disabled={loading}>
-        {loading ? "Processing..." : "Submit"}
-      </button>
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-      {result && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Car Entry Recorded:</h3>
-          <p>Car Plate: {result.createEntryCar.car.carPlate}</p>
-          <p>Entry Time: {result.createEntryCar.parkingSession.entryTime}</p>
-        </div>
+    (<Box sx={{ p: 3, maxWidth: 600, mx: "auto", textAlign: "center" }}>
+      <Typography variant="h4" gutterBottom>
+        Зогсоол руу орох
+      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          type="file"
+          onChange={handleFileChange}
+          fullWidth
+          slotProps={{
+            htmlInput: { accept: "image/*" }
+          }}
+        />
+      </Box>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSubmit}
+        disabled={loading}
+        startIcon={loading && <CircularProgress size={20} />}
+      >
+        {loading ? "Processing..." : "Орох"}
+      </Button>
+      {errorMessage && (
+        <Alert severity="error" sx={{ mt: 3 }}>
+          {errorMessage}
+        </Alert>
       )}
-    </div>
+      {result && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6">Зогсоол руу орсон машин:</Typography>
+          <Typography>Машины дугаар: {result.createEntryCar.car.carPlate}</Typography>
+          <Typography>
+            Орсон цаг: {result.createEntryCar.parkingSession.entryTime}
+          </Typography>
+        </Box>
+      )}
+    </Box>)
   );
 }
