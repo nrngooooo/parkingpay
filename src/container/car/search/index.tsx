@@ -1,83 +1,60 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Box, TextField, Typography, Grid, Button } from "@mui/material";
-import { Clear } from "@mui/icons-material";
-import Keyboard from "@/components/Keyboard";
+import { Box, TextField, Typography, Alert, CircularProgress } from "@mui/material";
 import Keypad from "@/components/Keypad";
+import { gql, useQuery } from "@apollo/client";
+import { useCarSearchForm } from "@/hooks/useCarSearchForm";
 
-const mockCarData: string[] = []; // Mock data storage
+const SEARCH_CAR_QUERY = gql`
+  query SearchCar($carPlate: String!) {
+    searchCarByPlate(carPlate: $carPlate) {
+      carPlate
+      entryPhoto
+    }
+  }
+`;
 
 const CarSearch: React.FC = () => {
-  const [carNumbers, setCarNumbers] = useState<string[]>(["", "", "", ""]);
-  const [carLetters, setCarLetters] = useState<string[]>(["", "", ""]);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const {
+    register,
+    getValues,
+    errors,
+    carPlate,
+    handleKeypadClick,
+    handleBackspace,
+  } = useCarSearchForm();
+
   const router = useRouter();
+  const [searchError, setSearchError] = useState<string | null>(null);
 
-  const handleKeypadClick = (num: string) => {
-    setCarNumbers((prev) => {
-      const nextNumbers = [...prev];
-      const firstEmptyIndex = nextNumbers.findIndex((n) => n === "");
-      if (firstEmptyIndex !== -1) {
-        nextNumbers[firstEmptyIndex] = num;
+  const { data, loading, error } = useQuery(SEARCH_CAR_QUERY, {
+    variables: { carPlate },
+    skip: carPlate.length < 4,
+    onCompleted: (data) => {
+      if (!data?.searchCarByPlate) {
+        setSearchError("Авто машины дугаар олдсонгүй."); // Car number not found
+      } else {
+        setSearchError(null); // Reset error if car is found
+        router.push(`/car/detail/${carPlate}`);
       }
-
-      // Switch to keyboard after 4 numbers are entered
-      if (nextNumbers.filter(Boolean).length === 4) {
-        setIsKeyboardVisible(true);
-      }
-
-      return nextNumbers;
-    });
-  };
-
-  const handleLetterClick = (letter: string) => {
-    setCarLetters((prev) => {
-      const nextLetters = [...prev];
-      const firstEmptyIndex = nextLetters.findIndex((n) => n === "");
-      if (firstEmptyIndex !== -1) {
-        nextLetters[firstEmptyIndex] = letter;
-      }
-      return nextLetters;
-    });
-  };
-
-  const handleBackspace = () => {
-    if (isKeyboardVisible) {
-      setCarLetters((prev) => {
-        const lastFilledIndex = [...prev].reverse().findIndex((n) => n !== "");
-        if (lastFilledIndex !== -1) {
-          const realIndex = 2 - lastFilledIndex;
-          prev[realIndex] = "";
-          return [...prev];
-        }
-        return prev;
-      });
-    } else {
-      setCarNumbers((prev) => {
-        const lastFilledIndex = [...prev].reverse().findIndex((n) => n !== "");
-        if (lastFilledIndex !== -1) {
-          const realIndex = 3 - lastFilledIndex;
-          prev[realIndex] = "";
-          return [...prev];
-        }
-        return prev;
-      });
-    }
-  };
+    },
+  });
 
   useEffect(() => {
-    const fullCarNumber = carNumbers.join("") + carLetters.join("");
-    if (
-      carNumbers.every((num) => num !== "") &&
-      carLetters.every((letter) => letter !== "")
-    ) {
-      mockCarData.push(fullCarNumber);
-      if (mockCarData.includes(fullCarNumber)) {
-        router.push(`/car/detail/${fullCarNumber}`);
-      }
+    if (error) {
+      setSearchError("Сүлжээний алдаа гарлаа. Дахин оролдоно уу."); // Network error
     }
-  }, [carNumbers, carLetters, router]);
+  }, [error]);
+
+  const handleSearch = () => {
+    if (carPlate.length >= 4) {
+      // Trigger the search or re-query when search button is clicked
+      setSearchError(null); // Reset error before searching
+    } else {
+      setSearchError("Авто машины дугаар бүрэн оруулна уу."); // Complete car number is required
+    }
+  };
 
   return (
     <Box
@@ -93,12 +70,11 @@ const CarSearch: React.FC = () => {
       <Typography variant="h4" sx={{ mb: 2, textTransform: "uppercase" }}>
         Авто машины дугаараа оруулна уу
       </Typography>
-
       <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-        {carNumbers.map((num, index) => (
+        {getValues("carNumbers")?.map((num, index) => (
           <TextField
             key={index}
-            value={num}
+            value={num || ""}
             variant="outlined"
             sx={{
               width: 50,
@@ -106,32 +82,34 @@ const CarSearch: React.FC = () => {
               bgcolor: "#333",
               input: { color: "#fff" },
             }}
+            {...register(`carNumbers.${index}`)}
+            slotProps={{
+              htmlInput: { maxLength: 1 },
+            }}
+            error={!!errors.carNumbers?.[index]}
+            helperText={errors.carNumbers?.[index]?.message}
           />
         ))}
-        {isKeyboardVisible &&
-          carLetters.map((letter, index) => (
-            <TextField
-              key={index + 4}
-              value={letter}
-              variant="outlined"
-              sx={{
-                width: 50,
-                textAlign: "center",
-                bgcolor: "#333",
-                input: { color: "#fff" },
-              }}
-            />
-          ))}
       </Box>
 
-      {isKeyboardVisible ? (
-        <Keyboard
-          onLetterPress={handleLetterClick}
-          onBackspace={handleBackspace}
-        />
-      ) : (
-        <Keypad onKeyPress={handleKeypadClick} onBackspace={handleBackspace} />
+      {loading && (
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 2 }}>
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>Уншиж байна...</Typography> {/* Loading message */}
+        </Box>
       )}
+
+      {searchError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {searchError}
+        </Alert>
+      )}
+
+      <Keypad
+        onKeyPress={handleKeypadClick}
+        onBackspace={handleBackspace}
+        onSearch={handleSearch} // Pass handleSearch to Keypad component
+      />
     </Box>
   );
 };

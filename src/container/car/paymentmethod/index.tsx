@@ -5,7 +5,7 @@ import Image from "next/legacy/image";
 import React, { useEffect, useState } from "react";
 import AccessTimeIcon from '@mui/icons-material/AccessTime'; 
 
-const Payment: React.FC = () => {
+const PaymentMethod: React.FC = () => {
   const router = useRouter();
   const { carnumber } = useParams(); 
 
@@ -176,4 +176,4 @@ const Payment: React.FC = () => {
   );
 };
 
-export default Payment;
+export default PaymentMethod;

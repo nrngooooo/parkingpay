@@ -5,9 +5,10 @@ import { ArrowBack } from "@mui/icons-material";
 interface KeypadProps {
   onKeyPress: (num: string) => void;
   onBackspace: () => void;
+  onSearch: () => void; // Added onSearch prop
 }
 
-const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace }) => {
+const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace, onSearch }) => {
   return (
     <Grid container spacing={1} sx={{ mb: 2, padding: 1 }}>
       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
@@ -47,6 +48,15 @@ const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace }) => {
           }}
         >
           0
+        </Button>
+      </Grid>
+      <Grid item xs={4}> {/* Added search button */}
+        <Button
+          variant="contained"
+          onClick={onSearch}
+          sx={{ width: "100%", bgcolor: "blue", color: "#fff" }} // Blue button for search
+        >
+          Хайх
         </Button>
       </Grid>
     </Grid>
