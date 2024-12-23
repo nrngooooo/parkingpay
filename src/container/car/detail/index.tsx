@@ -82,7 +82,11 @@ const CarDetail: React.FC = () => {
       <Card sx={{ width: 400, textAlign: "center" }}>
         <Box sx={{ position: "relative" }}>
           <Image
-            src={`/${carInfo.entryPhoto}` || "/images/default_car.jpg"}
+            src={
+              carInfo.entryPhoto
+                ? `${process.env.NEXT_PUBLIC_BACK_END_URL}media/${carInfo.entryPhoto}`
+                : "/images/default_car.jpg"
+            }
             alt="Car Entry"
             objectFit="cover"
             width={500}

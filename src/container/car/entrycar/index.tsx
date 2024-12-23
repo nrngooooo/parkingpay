@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
+import Link from "@mui/material/Link";
 
 const CREATE_ENTRY_CAR = gql`
   mutation CreateEntryCarMutation($input: CreateEntryCarInput!) {
@@ -71,7 +72,9 @@ export default function EntryCar() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`OCR API returned status ${response.status}: ${errorText}`);
+        throw new Error(
+          `OCR API returned status ${response.status}: ${errorText}`
+        );
       }
 
       const data = await response.json();
@@ -110,50 +113,67 @@ export default function EntryCar() {
 
       setResult(response.data);
     } catch (err: any) {
-      setErrorMessage(err.message || "Failed to create entry. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to create entry. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    (<Box sx={{ p: 3, maxWidth: 600, mx: "auto", textAlign: "center" }}>
-      <Typography variant="h4" gutterBottom>
-        Зогсоол руу орох
-      </Typography>
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          type="file"
-          onChange={handleFileChange}
-          fullWidth
-          slotProps={{
-            htmlInput: { accept: "image/*" }
-          }}
-        />
-      </Box>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit}
-        disabled={loading}
-        startIcon={loading && <CircularProgress size={20} />}
-      >
-        {loading ? "Processing..." : "Орох"}
-      </Button>
-      {errorMessage && (
-        <Alert severity="error" sx={{ mt: 3 }}>
-          {errorMessage}
-        </Alert>
-      )}
-      {result && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6">Зогсоол руу орсон машин:</Typography>
-          <Typography>Машины дугаар: {result.createEntryCar.car.carPlate}</Typography>
-          <Typography>
-            Орсон цаг: {result.createEntryCar.parkingSession.entryTime}
-          </Typography>
+    <>
+      <Box sx={{ p: 3, maxWidth: 600, mx: "auto", textAlign: "center" }}>
+        <Typography variant="h4" gutterBottom>
+          Зогсоол руу орох
+        </Typography>
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            type="file"
+            onChange={handleFileChange}
+            fullWidth
+            slotProps={{
+              htmlInput: { accept: "image/*" },
+            }}
+          />
         </Box>
-      )}
-    </Box>)
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={loading}
+          startIcon={loading && <CircularProgress size={20} />}
+        >
+          {loading ? "Processing..." : "Орох"}
+        </Button>
+        {errorMessage && (
+          <Alert severity="error" sx={{ mt: 3 }}>
+            {errorMessage}
+          </Alert>
+        )}
+        {result && (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6">Зогсоол руу орсон машин:</Typography>
+            <Typography>
+              Машины дугаар: {result.createEntryCar.car.carPlate}
+            </Typography>
+            <Typography>
+              Орсон цаг: {result.createEntryCar.parkingSession.entryTime}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+      <Link
+        href="/car/search"
+        color="primary"
+        sx={{
+          display: "block",
+          mt: 3,
+          textDecoration: "none",
+        }}
+      >
+        Зогсоолоос машин хайх
+      </Link>
+    </>
   );
 }

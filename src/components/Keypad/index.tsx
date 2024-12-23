@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Grid } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowBack, Check } from "@mui/icons-material";
 
 interface KeypadProps {
   onKeyPress: (num: string) => void;
@@ -56,7 +56,7 @@ const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace, onSearch }) =>
           onClick={onSearch}
           sx={{ width: "100%", bgcolor: "blue", color: "#fff" }} // Blue button for search
         >
-          Хайх
+          <Check/>
         </Button>
       </Grid>
     </Grid>
