@@ -1,8 +1,15 @@
 "use client";
 import { useQuery, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Card, CardContent, Typography, Box } from "@mui/material";
-import Image from "next/image";
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  CircularProgress,
+} from "@mui/material";
+import Image from "next/legacy/image";
 import React from "react";
 
 const GET_CAR_DETAILS = gql`
@@ -16,6 +23,9 @@ const GET_CAR_DETAILS = gql`
         duration
         exitTime
         paidStatus
+        payment {
+          amount
+        }
       }
     }
   }
@@ -29,12 +39,50 @@ const CarDetail: React.FC = () => {
     variables: { carPlate: carnumber },
   });
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          backgroundColor: "#f4f4f4",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          backgroundColor: "#f4f4f4",
+        }}
+      >
+        <Typography variant="h6" color="error">
+          Error: {error.message}
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => router.back()}
+          sx={{ mt: 2 }}
+        >
+          Go Back
+        </Button>
+      </Box>
+    );
+  }
 
   const carInfo = data?.carDetails;
 
-  // If carInfo is null or undefined, display a message to the user
   if (!carInfo) {
     return (
       <Box
@@ -77,9 +125,12 @@ const CarDetail: React.FC = () => {
         alignItems: "center",
         minHeight: "100vh",
         backgroundColor: "#f4f4f4",
+        padding: 2,
       }}
     >
-      <Card sx={{ width: 400, textAlign: "center" }}>
+      <Card
+        sx={{ width: "100%", maxWidth: 400, textAlign: "center", boxShadow: 3 }}
+      >
         <Box sx={{ position: "relative" }}>
           <Image
             src={
@@ -88,7 +139,8 @@ const CarDetail: React.FC = () => {
                 : "/images/default_car.jpg"
             }
             alt="Car Entry"
-            objectFit="cover"
+            priority
+            objectFit="contain"
             width={500}
             height={200}
           />
@@ -97,7 +149,7 @@ const CarDetail: React.FC = () => {
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             {carInfo.carPlate}
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
             {lastSession?.entryTime || "No entry time available"}
           </Typography>
 
@@ -106,14 +158,17 @@ const CarDetail: React.FC = () => {
               display: "flex",
               justifyContent: "space-between",
               marginY: 2,
+              borderTop: "1px solid #ccc",
+              borderBottom: "1px solid #ccc",
+              paddingY: 1,
             }}
           >
-            <Typography>Хугацаа</Typography>
-            <Typography>
+            <Typography variant="body2">Хугацаа:</Typography>
+            <Typography variant="body2">
               {lastSession?.duration
-                ? `${Math.floor(lastSession.duration / 60)}цаг ${
+                ? `${Math.floor(lastSession.duration / 60)} цаг ${
                     lastSession.duration % 60
-                  }мин`
+                  } минут`
                 : "Unknown"}
             </Typography>
           </Box>
@@ -122,12 +177,14 @@ const CarDetail: React.FC = () => {
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              marginBottom: 2,
+              marginY: 1,
             }}
           >
-            <Typography>Төлбөр</Typography>
-            <Typography>
-              {lastSession?.paidStatus ? "Paid" : "Unpaid"}
+            <Typography variant="body2">Төлбөр:</Typography>
+            <Typography variant="body2">
+              {lastSession?.payment?.amount
+                ? `${lastSession.payment.amount} MNT`
+                : "No payment information"}
             </Typography>
           </Box>
         </CardContent>
@@ -137,7 +194,8 @@ const CarDetail: React.FC = () => {
           display: "flex",
           justifyContent: "space-between",
           marginTop: 3,
-          width: "400px",
+          width: "100%",
+          maxWidth: 400,
           gap: 2,
         }}
       >
@@ -155,7 +213,7 @@ const CarDetail: React.FC = () => {
           fullWidth
           onClick={handleProceedToPayment}
         >
-          ҮРГЭЛЖЛҮҮЛЭХ
+          ТӨЛБӨР ТӨЛӨХ
         </Button>
       </Box>
     </Box>
