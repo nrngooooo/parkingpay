@@ -25,9 +25,10 @@ const PaymentMethod: React.FC = () => {
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
-  const handlePaymentSelection = (method: string) => {
-    console.log(`Selected payment method: ${method}`);
-  };
+ const handlePaymentSelection = (method: string) => {
+  router.push(`/car/paymentqr/${method}`);
+};
+
 
   return (
     <>
@@ -89,24 +90,6 @@ const PaymentMethod: React.FC = () => {
           >
             Qpay
           </Button>
-
-          <Button
-            fullWidth
-            variant="outlined"
-            sx={{ marginBottom: 2, justifyContent: "flex-start", borderRadius: "8px" }}
-            startIcon={
-              <Image
-                src="/images/bankcardlogo.png"
-                alt="Төлбөрийн картаар"
-                width={24}
-                height={24}
-              />
-            }
-            onClick={() => handlePaymentSelection("Төлбөрийн картаар")}
-          >
-            Төлбөрийн картаар
-          </Button>
-
           <Button
             fullWidth
             variant="outlined"

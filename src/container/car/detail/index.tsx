@@ -1,5 +1,5 @@
 "use client";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import {
   Button,
@@ -10,7 +10,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Image from "next/legacy/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const GET_CAR_DETAILS = gql`
   query GetCarDetails($carPlate: String!) {
@@ -20,12 +20,21 @@ const GET_CAR_DETAILS = gql`
       isEmployeeCar
       parkingSessions {
         entryTime
+      }
+    }
+  }
+`;
+
+const SAVE_PAYMENT = gql`
+  mutation SavePayment($input: SavePaymentInput!) {
+    savePayment(input: $input) {
+      success
+      message
+      payment {
+        id
+        amount
+        paymentTime
         duration
-        exitTime
-        paidStatus
-        payment {
-          amount
-        }
       }
     }
   }
@@ -38,6 +47,59 @@ const CarDetail: React.FC = () => {
   const { loading, error, data } = useQuery(GET_CAR_DETAILS, {
     variables: { carPlate: carnumber },
   });
+
+  const [savePayment] = useMutation(SAVE_PAYMENT);
+
+  const [duration, setDuration] = useState<number | null>(null);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
+
+  useEffect(() => {
+    if (data) {
+      const entryTime = data.carDetails?.parkingSessions?.[0]?.entryTime;
+      if (entryTime) {
+        const entryDate = new Date(entryTime);
+        const now = new Date();
+        const diffInMinutes = Math.floor(
+          (now.getTime() - entryDate.getTime()) / 60000
+        );
+        setDuration(diffInMinutes);
+
+        // Calculate total amount based on duration
+        const freeMinutes = 30;
+        const ratePerMinute = 10; // Example rate
+        const chargeableMinutes = Math.max(0, diffInMinutes - freeMinutes);
+        const amount = chargeableMinutes * ratePerMinute;
+        setTotalAmount(amount);
+      }
+    }
+  }, [data]);
+
+  const handleProceedToPayment = async () => {
+    const paymentTime = new Date().toISOString(); // Current time in ISO format
+
+    try {
+      const response = await savePayment({
+        variables: {
+          input: {
+            // Wrapping the fields inside the `input` object
+            carPlate: carnumber,
+            duration: duration || 0,
+            amount: totalAmount,
+            paymentTime,
+          },
+        },
+      });
+
+      if (response.data.savePayment.success) {
+        router.push(`/car/paymentmethod/${carnumber}`);
+      } else {
+        alert(response.data.savePayment.message);
+      }
+    } catch (error) {
+      console.error("Error saving payment:", error);
+      alert("Failed to process payment. Please try again.");
+    }
+  };
 
   if (loading) {
     return (
@@ -83,39 +145,6 @@ const CarDetail: React.FC = () => {
 
   const carInfo = data?.carDetails;
 
-  if (!carInfo) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-          backgroundColor: "#f4f4f4",
-        }}
-      >
-        <Typography variant="h6" color="error">
-          No details available for the provided car plate number.
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => router.back()}
-          sx={{ mt: 2 }}
-        >
-          Go Back
-        </Button>
-      </Box>
-    );
-  }
-
-  const lastSession =
-    carInfo.parkingSessions?.[carInfo.parkingSessions.length - 1];
-
-  const handleProceedToPayment = () => {
-    router.push(`/car/paymentmethod/${carnumber}`);
-  };
-
   return (
     <Box
       sx={{
@@ -150,7 +179,7 @@ const CarDetail: React.FC = () => {
             {carInfo.carPlate}
           </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
-            {lastSession?.entryTime || "No entry time available"}
+            Entry Time: {carInfo.parkingSessions?.[0]?.entryTime || "Unknown"}
           </Typography>
 
           <Box
@@ -165,11 +194,9 @@ const CarDetail: React.FC = () => {
           >
             <Typography variant="body2">Хугацаа:</Typography>
             <Typography variant="body2">
-              {lastSession?.duration
-                ? `${Math.floor(lastSession.duration / 60)} цаг ${
-                    lastSession.duration % 60
-                  } минут`
-                : "Unknown"}
+              {duration !== null
+                ? `${Math.floor(duration / 60)} цаг ${duration % 60} минут`
+                : "Calculating..."}
             </Typography>
           </Box>
 
@@ -182,9 +209,7 @@ const CarDetail: React.FC = () => {
           >
             <Typography variant="body2">Төлбөр:</Typography>
             <Typography variant="body2">
-              {lastSession?.payment?.amount
-                ? `${lastSession.payment.amount} MNT`
-                : "No payment information"}
+              {totalAmount ? `${totalAmount} MNT` : "Free"}
             </Typography>
           </Box>
         </CardContent>
